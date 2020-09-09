@@ -53,6 +53,36 @@ type UserPreferences struct {
 	DisableShowURLs      bool `yaml:"disable_show_urls"`
 }
 
+type KeyMap struct {
+	VerificationDone   string `yaml:"verification_done"`   // Used when verification process finished to close the modal
+	VerificationSubmit string `yaml:"verification_submit"` // Used to submit "yes"/"no" to confirm/reject verification
+
+	FuzzySearchOpen   string `yaml:"fuzzy_search_open"`   // Used to open fuzzy search modal
+	FuzzySearchClose  string `yaml:"fuzzy_search_cancel"` // Used to close fuzzy search modal
+	FuzzySearchNext   string `yaml:"fuzzy_search_next"`   // Used to go to next entry
+	FuzzySearchPrev   string `yaml:"fuzzy_search_prev"`   // Used to go to previous entry
+	FuzzySearchChoose string `yaml:"fuzzy_search_choose"` // Used to choose entry
+
+	RoomNext string `yaml:"room_next"` // Used to go to next room
+	RoomPrev string `yaml:"room_prev"` // Used to go to previous room
+
+	RoomViewTop        string `yaml:"room_view_top"`         // Used to go to the top of the room view
+	RoomViewBottom     string `yaml:"room_view_bottom"`      // Used to go to the bottom of the room view
+	RoomViewScrollUp   string `yaml:"room_view_scroll_up"`   // Used to scroll room view up
+	RoomViewScrollDown string `yaml:"room_view_scroll_down"` // Used to scroll room view down
+
+	MessageSelectCancel string `yaml:"message_select_cancel"` // Used to exit message select mode
+	MessageSelectNext   string `yaml:"message_select_next"`   // Used to go to next message
+	MessageSelectPrev   string `yaml:"message_select_prev"`   // Used to go to previous message
+	MessageSelectChoose string `yaml:"message_select_choose"` // Used to select message
+
+	MessageInputNewline string `yaml:"message_input_newline"` // Used to insert a newline in message input
+	MessageInputClear   string `yaml:"message_input_clear"`   // Used to clear input context
+	MessageInputSend    string `yaml:"message_input_send"`    // Used to send message
+
+	BareViewOpen string `yaml:"bare_view_open"` // Used to open bare messages view
+}
+
 // Config contains the main config of gomuks.
 type Config struct {
 	UserID      id.UserID   `yaml:"mxid"`
@@ -75,6 +105,9 @@ type Config struct {
 	DownloadDir  string `yaml:"download_dir"`
 	StateDir     string `yaml:"state_dir"`
 
+	Keymap string `yaml:"keymap"`
+	KeyMap KeyMap `yaml:"-"`
+
 	Preferences UserPreferences        `yaml:"-"`
 	AuthCache   AuthCache              `yaml:"-"`
 	Rooms       *rooms.RoomCache       `yaml:"-"`
@@ -94,6 +127,8 @@ func NewConfig(configDir, dataDir, cacheDir, downloadDir string) *Config {
 		RoomListPath: filepath.Join(cacheDir, "rooms.gob.gz"),
 		StateDir:     filepath.Join(cacheDir, "state"),
 		MediaDir:     filepath.Join(cacheDir, "media"),
+
+		Keymap: "default",
 
 		RoomCacheSize: 32,
 		RoomCacheAge:  1 * 60,
@@ -199,6 +234,14 @@ func (config *Config) SavePushRules() {
 		return
 	}
 	config.save("push rules", config.CacheDir, "pushrules.json", &config.PushRules)
+}
+
+func (config *Config) LoadKeymap() {
+	if config.Keymap == "default" {
+		// TODO: Set default config
+	}
+
+	config.load("keymap", filepath.Join(config.Dir, "keymaps"), config.Keymap+".yaml", &config.KeyMap)
 }
 
 func (config *Config) load(name, dir, file string, target interface{}) {
